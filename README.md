@@ -45,7 +45,6 @@ Gere um executável de atualização que substitui apenas os arquivos de código
 
   ```bash
   npm run gerar-atualizador
-  ```
 
 
 O binário criado em `atualizador/dist/` deve ser enviado ao cliente. Ao executá-lo, basta informar a pasta da instalação antiga. O diretório `dados/` não é sobrescrito e o arquivo `versao.txt` é atualizado.
