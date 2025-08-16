@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 
 async function main() {
   const rootDir = path.resolve(__dirname, '..');
-  const outputDir = path.join(__dirname, 'dist');
+  const outputDir = path.join(__dirname, 'atualizacoes');
   fs.rmSync(outputDir, { recursive: true, force: true });
   fs.mkdirSync(outputDir, { recursive: true });
 
@@ -15,7 +15,8 @@ async function main() {
     file: payloadPath,
     cwd: rootDir,
     filter: p => {
-      return !p.startsWith('node_modules') && !p.startsWith('atualizador') && !p.startsWith('dist') && !p.startsWith('.git') && !p.startsWith('dados');
+      const blocked = ['node_modules', 'atualizador', 'dist', '.git', 'dados'];
+      return !blocked.some(dir => p === dir || p.startsWith(`${dir}/`) || p.startsWith(`./${dir}`));
     }
   }, ['.']);
 
@@ -29,7 +30,8 @@ async function main() {
   const updaterScriptPath = path.join(outputDir, 'updater.js');
   fs.writeFileSync(updaterScriptPath, finalScript);
 
-  execSync(`npx pkg ${updaterScriptPath} --out-dir ${outputDir}`, { stdio: 'inherit' });
+  const targets = 'node18-linux-x64,node18-macos-x64,node18-win-x64';
+  execSync(`npx pkg ${updaterScriptPath} --targets ${targets} --out-dir ${outputDir}`, { stdio: 'inherit' });
   console.log('Atualizador gerado em', outputDir);
 }
 
