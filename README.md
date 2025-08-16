@@ -9,6 +9,7 @@ Gerenciador de clientes com lembretes automáticos via WhatsApp. O projeto utili
 - Envio de lembretes de cobrança de forma manual ou agendada.
 - Envio de mensagens em massa para clientes selecionados.
 - Persistência de dados local com *electron-store*.
+- Exibição da quantidade total de clientes e dos resultados filtrados na lista.
 
 ## Requisitos
 - [Node.js](https://nodejs.org/) 18 ou superior.
