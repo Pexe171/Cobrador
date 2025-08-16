@@ -7,7 +7,8 @@
     "start": "electron .",
     "test": "node --test",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "gerar-atualizador": "node atualizador/create.js"
   },
   "keywords": [
     "electron",
@@ -19,7 +20,8 @@
   "license": "ISC",
   "devDependencies": {
     "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron-builder": "^24.9.1",
+    "pkg": "^5.8.1"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
@@ -27,7 +29,8 @@
     "qrcode": "^1.5.3",
     "qrcode-terminal": "^0.12.0",
     "uuid": "^9.0.1",
-    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main"
+    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main",
+    "tar": "^6.1.11"
   },
   "build": {
     "appId": "com.start.cobradorautomatico",
