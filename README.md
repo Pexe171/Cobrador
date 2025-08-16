@@ -8,7 +8,7 @@ Gerenciador de clientes com lembretes automáticos via WhatsApp. O projeto utili
 - Verificação automática se o número do cliente está disponível no WhatsApp.
 - Envio de lembretes de cobrança de forma manual ou agendada.
 - Envio de mensagens em massa para clientes selecionados.
-- Controle de contas vendidas com cálculo automático de receitas e gráficos simples.
+- Controle de contas vendidas com cálculo automático de receitas. (Gráficos em manutenção.)
 - Persistência de dados local com *electron-store*.
 - Exibição da quantidade total de clientes e dos resultados filtrados na lista.
 

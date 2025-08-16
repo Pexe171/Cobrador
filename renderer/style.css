@@ -221,26 +221,19 @@ button:disabled { background-color: #555; cursor: not-allowed; }
 .account-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 0.85em; margin-right: 4px; }
 .financial-summary { margin-top: 20px; }
 
-/* Ajustes visuais para os gráficos */
-#goal-chart {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    margin-top: 15px;
-    background-color: var(--main-content-bg);
-    border-radius: 8px;
-}
-
+/* Área de gráficos em manutenção */
 .goal-section { margin-top: 15px; }
 .goal-form { display: flex; gap: 10px; margin-top: 10px; }
 .goal-progress { margin-top: 10px; color: var(--secondary-text-color); }
-#accounts-chart {
-    display: block;
-    width: 300px;
-    height: 300px;
+
+.chart-placeholder {
     margin-top: 15px;
-    background-color: var(--main-content-bg);
+    padding: 20px;
+    border: 1px dashed var(--border-color);
     border-radius: 8px;
+    text-align: center;
+    color: var(--secondary-text-color);
+    background-color: var(--main-content-bg);
 }
 
 .hidden { display: none !important; }
