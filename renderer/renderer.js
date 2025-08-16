@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let accountsChart = null;
     let goalChart = null;
     let salesGoal = 0;
+    const MAX_ACCOUNTS_CHART_ITEMS = 20;
 
     // --- Configurações ---
     const scheduleTime1Input = document.getElementById('schedule-time-1');
@@ -314,8 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const canvas = document.getElementById('accounts-chart');
         if (canvas) {
-            const labels = Object.keys(counts);
-            const data = Object.values(counts);
+            const allLabels = Object.keys(counts);
+            const labels = allLabels.slice(0, MAX_ACCOUNTS_CHART_ITEMS); // Limita o gráfico para evitar linhas infinitas
+            const data = labels.map(label => counts[label]);
             const colors = labels.map(name => {
                 const acc = serviceAccounts.find(a => a.name === name);
                 return acc ? acc.color : '#0078d4';
