@@ -38,11 +38,14 @@ npm run dist   # executáveis para a plataforma
 Os artefatos são gerados em `dist_electron/`.
 
 ## Atualização
-Gere um executável de atualização que substitui apenas os arquivos de código e preserva os dados do cliente:
+Gere um executável de atualização que substitui apenas os arquivos de código e preserva os dados do cliente. Existem duas formas:
 
-```bash
-npm run gerar-atualizador
-```
+- Pelo aplicativo: vá ao menu **Configurações** e clique em **Gerar Atualizador**.
+- Pela linha de comando:
+
+  ```bash
+  npm run gerar-atualizador
+
 
 O binário criado em `atualizador/dist/` deve ser enviado ao cliente. Ao executá-lo, basta informar a pasta da instalação antiga. O diretório `dados/` não é sobrescrito e o arquivo `versao.txt` é atualizado.
 
