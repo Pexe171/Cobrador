@@ -132,6 +132,15 @@
                     <div id="service-accounts-list"></div>
                     <div class="financial-summary">
                         <h3>Total Vendido: R$ <span id="total-sold">0</span></h3>
+                        <div class="goal-section">
+                            <h3>Meta de Vendas: R$ <span id="sales-goal-display">0</span></h3>
+                            <div class="goal-form">
+                                <input type="number" id="sales-goal-input" placeholder="Definir meta">
+                                <button id="btn-save-sales-goal" class="btn-primary-alt">Salvar Meta</button>
+                            </div>
+                            <canvas id="goal-chart" height="150"></canvas>
+                            <p id="goal-progress" class="goal-progress"></p>
+                        </div>
                         <canvas id="accounts-chart" height="150"></canvas>
                     </div>
                 </div>

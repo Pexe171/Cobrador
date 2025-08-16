@@ -50,7 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveServiceAccount = document.getElementById('btn-save-service-account');
     const serviceAccountsListEl = document.getElementById('service-accounts-list');
     const totalSoldEl = document.getElementById('total-sold');
+    const salesGoalInput = document.getElementById('sales-goal-input');
+    const btnSaveSalesGoal = document.getElementById('btn-save-sales-goal');
+    const salesGoalDisplay = document.getElementById('sales-goal-display');
+    const goalProgressEl = document.getElementById('goal-progress');
     let accountsChart = null;
+    let goalChart = null;
+    let salesGoal = 0;
 
     // --- Configurações ---
     const scheduleTime1Input = document.getElementById('schedule-time-1');
@@ -210,6 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
         updateFinancialSummary();
     }
 
+    async function loadSalesGoal() {
+        salesGoal = await window.electronAPI.getSalesGoal();
+        if (salesGoalDisplay) salesGoalDisplay.textContent = Number(salesGoal).toFixed(2);
+        if (salesGoalInput) salesGoalInput.value = Number(salesGoal);
+    }
+
     function renderServiceAccounts() {
         serviceAccountsListEl.innerHTML = '';
         if (!serviceAccounts.length) {
@@ -261,6 +273,45 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         if (totalSoldEl) totalSoldEl.textContent = total.toFixed(2);
+
+        if (goalProgressEl) {
+            if (salesGoal > 0) {
+                const percent = (total / salesGoal) * 100;
+                if (total <= salesGoal) {
+                    goalProgressEl.textContent = `Vendido: R$ ${total.toFixed(2)} | Restante: R$ ${(salesGoal - total).toFixed(2)} | ${percent.toFixed(1)}% da meta`;
+                } else {
+                    goalProgressEl.textContent = `Meta ultrapassada! ${percent.toFixed(1)}% do objetivo alcançado.`;
+                }
+            } else {
+                goalProgressEl.textContent = 'Defina uma meta para acompanhar o progresso.';
+            }
+        }
+
+        const goalCanvas = document.getElementById('goal-chart');
+        if (goalCanvas) {
+            const ctxGoal = goalCanvas.getContext('2d');
+            if (goalChart) goalChart.destroy();
+            if (salesGoal > 0) {
+                const achieved = Math.min(total, salesGoal);
+                const remaining = Math.max(salesGoal - total, 0);
+                const exceeded = total > salesGoal ? total - salesGoal : 0;
+                const dataGoal = exceeded ? [salesGoal, exceeded] : [achieved, remaining];
+                const labelsGoal = exceeded ? ['Meta', 'Excedente'] : ['Vendido', 'Restante'];
+                const colorsGoal = exceeded ? ['#4caf50', '#ff9800'] : ['#4caf50', '#cccccc'];
+                goalChart = new Chart(ctxGoal, {
+                    type: 'doughnut',
+                    data: { labels: labelsGoal, datasets: [{ data: dataGoal, backgroundColor: colorsGoal, borderWidth: 0 }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: true } } }
+                });
+            } else {
+                goalChart = new Chart(ctxGoal, {
+                    type: 'doughnut',
+                    data: { labels: ['Sem meta'], datasets: [{ data: [1], backgroundColor: ['#cccccc'], borderWidth: 0 }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
+        }
+
         const canvas = document.getElementById('accounts-chart');
         if (canvas) {
             const labels = Object.keys(counts);
@@ -592,6 +643,15 @@ document.addEventListener('DOMContentLoaded', () => {
             await loadServiceAccounts();
         });
 
+        btnSaveSalesGoal.addEventListener('click', async () => {
+            const goal = parseFloat(salesGoalInput.value);
+            if (isNaN(goal)) return;
+            await window.electronAPI.saveSalesGoal(goal);
+            salesGoal = goal;
+            if (salesGoalDisplay) salesGoalDisplay.textContent = goal.toFixed(2);
+            updateFinancialSummary();
+        });
+
         serviceAccountsListEl.addEventListener('click', async (e) => {
             const btn = e.target.closest('button[data-action]');
             if (!btn) return;
@@ -635,6 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.electronAPI.onClientsUpdated(() => { console.log('[UI] Clientes atualizados. A recarregar.'); loadClients(); });
 
         // Carregamento Inicial
+        await loadSalesGoal();
         await loadAndRenderWhatsAppAccounts();
         await loadServiceAccounts();
         await loadClients();
