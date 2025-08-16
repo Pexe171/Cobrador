@@ -268,12 +268,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'bar',
                 data: {
                     labels: Object.keys(counts),
-                    datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(name => {
-                        const acc = serviceAccounts.find(a => a.name === name);
-                        return acc ? acc.color : '#0078d4';
-                    }) }]
+                    datasets: [{
+                        data: Object.values(counts),
+                        backgroundColor: Object.keys(counts).map(name => {
+                            const acc = serviceAccounts.find(a => a.name === name);
+                            return acc ? acc.color : '#0078d4';
+                        }),
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
                 },
-                options: { plugins: { legend: { display: false } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Contas de Serviço',
+                            color: '#f5f5f5'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Total: ${context.formattedValue}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#f5f5f5' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#f5f5f5', precision: 0 },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
             });
         }
     }
