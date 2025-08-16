@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientsListTableBody = document.getElementById('clients-list');
     const searchClientField = document.getElementById('search-client');
     const btnForceCharge = document.getElementById('btn-force-charge');
+    const clientCountEl = document.getElementById('client-count');
 
     // --- Envio em Massa ---
     const bulkMessageContainer = document.getElementById('view-bulk-message');
@@ -200,6 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderClientsTable(clients) {
         clientsListTableBody.innerHTML = '';
+        updateClientCount(clients.length, clientsMap.size);
         if (clients.length === 0) {
             clientsListTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>`;
             return;
@@ -228,6 +230,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
         });
+    }
+
+    function updateClientCount(displayed, total) {
+        if (clientCountEl) {
+            clientCountEl.textContent = `(Mostrando ${displayed} de ${total})`;
+        }
     }
 
     function populateWhatsAppAccountDropdown() {
