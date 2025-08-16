@@ -54,10 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSaveSalesGoal = document.getElementById('btn-save-sales-goal');
     const salesGoalDisplay = document.getElementById('sales-goal-display');
     const goalProgressEl = document.getElementById('goal-progress');
-    let accountsChart = null;
-    let goalChart = null;
     let salesGoal = 0;
-    const MAX_ACCOUNTS_CHART_ITEMS = 20;
 
     // --- Configurações ---
     const scheduleTime1Input = document.getElementById('schedule-time-1');
@@ -263,13 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFinancialSummary() {
         const clients = Array.from(clientsMap.values());
         let total = 0;
-        const counts = {};
         clients.forEach(c => {
             (c.purchasedAccounts || []).forEach(id => {
                 const acc = serviceAccounts.find(a => a.id === id);
                 if (acc) {
                     total += Number(acc.value);
-                    counts[acc.name] = (counts[acc.name] || 0) + 1;
                 }
             });
         });
@@ -288,104 +283,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const goalCanvas = document.getElementById('goal-chart');
-        if (goalCanvas) {
-            const ctxGoal = goalCanvas.getContext('2d');
-
-            if (!goalChart) {
-                goalChart = new Chart(ctxGoal, {
-                    type: 'doughnut',
-                    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
-                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                });
-            } else if (goalChart.ctx.canvas !== goalCanvas) {
-                goalChart.destroy();
-                goalChart = new Chart(ctxGoal, {
-                    type: 'doughnut',
-                    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
-                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                });
-            }
-
-            if (salesGoal > 0) {
-                const percentRaw = (total / salesGoal) * 100;
-                const percent = Math.min(percentRaw, 100);
-                goalChart.data.labels = ['Vendido', 'Restante'];
-                goalChart.data.datasets[0].data = [percent, 100 - percent];
-                goalChart.data.datasets[0].backgroundColor = ['#4caf50', '#cccccc'];
-                goalChart.options.plugins.legend.display = true;
-            } else {
-                goalChart.data.labels = ['Sem meta'];
-                goalChart.data.datasets[0].data = [1];
-                goalChart.data.datasets[0].backgroundColor = ['#cccccc'];
-                goalChart.options.plugins.legend.display = false;
-            }
-
-            goalChart.update();
-        }
-
-        const canvas = document.getElementById('accounts-chart');
-        if (canvas) {
-            const allLabels = Object.keys(counts);
-            const labels = allLabels.slice(0, MAX_ACCOUNTS_CHART_ITEMS); // Limita o gráfico para evitar linhas infinitas
-            const data = labels.map(label => counts[label]);
-            const colors = labels.map(name => {
-                const acc = serviceAccounts.find(a => a.name === name);
-                return acc ? acc.color : '#0078d4';
-            });
-
-            const ctx = canvas.getContext('2d');
-
-            const options = {
-                responsive: false,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true, labels: { color: '#f5f5f5' } },
-                    title: {
-                        display: true,
-                        text: 'Contas de Serviço',
-                        color: '#f5f5f5'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => `${context.label}: ${context.formattedValue}`
-                        }
-                    }
-                }
-            };
-
-            if (!accountsChart) {
-                accountsChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels,
-                        datasets: [{
-                            data,
-                            backgroundColor: colors
-                        }]
-                    },
-                    options
-                });
-            } else if (accountsChart.ctx.canvas !== canvas) {
-                accountsChart.destroy();
-                accountsChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels,
-                        datasets: [{
-                            data,
-                            backgroundColor: colors
-                        }]
-                    },
-                    options
-                });
-            } else {
-                accountsChart.data.labels = labels;
-                accountsChart.data.datasets[0].data = data;
-                accountsChart.data.datasets[0].backgroundColor = colors;
-                accountsChart.update();
-            }
-        }
     }
 
     // --- Lógica de Clientes ---
