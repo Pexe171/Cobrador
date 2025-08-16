@@ -212,4 +212,13 @@ button:disabled { background-color: #555; cursor: not-allowed; }
 .btn-modal-cancel { background-color: var(--danger-color); color: white; }
 .btn-modal-ok { background-color: var(--button-primary-bg); color: white; }
 
+/* --- Controle de Contas --- */
+.service-account-form { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.service-account-form input { flex: 1; min-width: 120px; }
+#service-accounts-list { margin-top: 10px; }
+.service-account-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.service-account-color { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.account-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; color: #fff; font-size: 0.85em; margin-right: 4px; }
+.financial-summary { margin-top: 20px; }
+
 .hidden { display: none !important; }
