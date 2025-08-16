@@ -40,6 +40,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getScheduleSettings: () => ipcRenderer.invoke('get-schedule-settings'),
   saveScheduleSettings: (settings) => ipcRenderer.invoke('save-schedule-settings', settings),
 
+  generateUpdater: () => ipcRenderer.invoke('generate-updater'),
+
   // Gestão de Listeners
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
 });
