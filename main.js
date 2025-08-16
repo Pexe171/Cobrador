@@ -5,6 +5,7 @@ const Store = require('electron-store');
 const { setupCronJobs, checkAndSendReminders } = require('./cronJobs');
 const { clientsManager } = require('./whatsapp');
 const { formatMessage, formatDate } = require('./utils');
+const { execFile } = require('child_process');
 
 // Schema da base de dados local
 const schema = {
@@ -284,3 +285,19 @@ ipcMain.handle('save-schedule-settings', async (event, settings) => {
 });
 
 ipcMain.handle('get-schedule-settings', async () => store.get('scheduleSettings'));
+
+// --- Atualizador ---
+ipcMain.handle('generate-updater', async () => {
+    const script = path.join(__dirname, 'atualizador', 'create.js');
+    try {
+        await new Promise((resolve, reject) => {
+            execFile(process.execPath, [script], { cwd: __dirname }, (error) => {
+                if (error) reject(error); else resolve();
+            });
+        });
+        return { success: true, message: 'Atualizador gerado com sucesso!' };
+    } catch (error) {
+        console.error('[Atualizador]', error);
+        return { success: false, message: 'Falha ao gerar atualizador.' };
+    }
+});

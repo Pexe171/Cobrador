@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const scheduleTime2Input = document.getElementById('schedule-time-2');
     const btnSaveScheduleSettings = document.getElementById('btn-save-schedule-settings');
     const scheduleSettingsStatusEl = document.getElementById('schedule-settings-status');
+    const btnGenerateUpdater = document.getElementById('btn-generate-updater');
+    const generateUpdaterStatusEl = document.getElementById('generate-updater-status');
 
     // --- Modal ---
     const modalOverlay = document.getElementById('custom-modal-overlay');
@@ -585,7 +587,15 @@ document.addEventListener('DOMContentLoaded', () => {
             scheduleSettingsStatusEl.className = `settings-status ${result.success ? 'alert-success' : 'alert-danger'}`;
             setTimeout(() => { scheduleSettingsStatusEl.textContent = ''; scheduleSettingsStatusEl.className = 'settings-status'; }, 4000);
         });
-        
+
+        btnGenerateUpdater.addEventListener('click', async () => {
+            generateUpdaterStatusEl.textContent = 'A gerar...';
+            const result = await window.electronAPI.generateUpdater();
+            generateUpdaterStatusEl.textContent = result.message;
+            generateUpdaterStatusEl.className = `settings-status ${result.success ? 'alert-success' : 'alert-danger'}`;
+            setTimeout(() => { generateUpdaterStatusEl.textContent = ''; generateUpdaterStatusEl.className = 'settings-status'; }, 4000);
+        });
+
         searchClientField.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase().trim();
             const allClients = Array.from(clientsMap.values());
