@@ -261,52 +261,63 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         if (totalSoldEl) totalSoldEl.textContent = total.toFixed(2);
-        const ctx = document.getElementById('accounts-chart');
-        if (ctx) {
-            if (accountsChart) accountsChart.destroy();
-            accountsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(counts),
-                    datasets: [{
-                        data: Object.values(counts),
-                        backgroundColor: Object.keys(counts).map(name => {
-                            const acc = serviceAccounts.find(a => a.name === name);
-                            return acc ? acc.color : '#0078d4';
-                        }),
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Contas de Serviço',
-                            color: '#f5f5f5'
+        const canvas = document.getElementById('accounts-chart');
+        if (canvas) {
+            const labels = Object.keys(counts);
+            const data = Object.values(counts);
+            const colors = labels.map(name => {
+                const acc = serviceAccounts.find(a => a.name === name);
+                return acc ? acc.color : '#0078d4';
+            });
+
+            if (!accountsChart) {
+                const ctx = canvas.getContext('2d');
+                accountsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: {
+                                display: true,
+                                text: 'Contas de Serviço',
+                                color: '#f5f5f5'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `Total: ${context.formattedValue}`
+                                }
+                            }
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Total: ${context.formattedValue}`
+                        scales: {
+                            x: {
+                                ticks: { color: '#f5f5f5' },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#f5f5f5', precision: 0 },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
                             }
                         }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#f5f5f5' },
-                            grid: { display: false }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#f5f5f5', precision: 0 },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
                     }
-                }
-            });
+                });
+            } else {
+                accountsChart.data.labels = labels;
+                accountsChart.data.datasets[0].data = data;
+                accountsChart.data.datasets[0].backgroundColor = colors;
+                accountsChart.update();
+            }
         }
     }
 
