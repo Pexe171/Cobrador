@@ -236,8 +236,8 @@ button:disabled { background-color: #555; cursor: not-allowed; }
 .goal-progress { margin-top: 10px; color: var(--secondary-text-color); }
 #accounts-chart {
     display: block;
-    width: 100%;
-    max-width: 100%;
+    width: 300px;
+    height: 300px;
     margin-top: 15px;
     background-color: var(--main-content-bg);
     border-radius: 8px;
