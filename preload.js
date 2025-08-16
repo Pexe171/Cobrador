@@ -32,6 +32,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addServiceAccount: (account) => ipcRenderer.invoke('add-service-account', account),
   deleteServiceAccount: (id) => ipcRenderer.invoke('delete-service-account', id),
 
+  // Meta de Vendas
+  getSalesGoal: () => ipcRenderer.invoke('get-sales-goal'),
+  saveSalesGoal: (goal) => ipcRenderer.invoke('save-sales-goal', goal),
+
   // Funções de Configurações
   getScheduleSettings: () => ipcRenderer.invoke('get-schedule-settings'),
   saveScheduleSettings: (settings) => ipcRenderer.invoke('save-schedule-settings', settings),

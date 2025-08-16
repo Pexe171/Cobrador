@@ -23,6 +23,10 @@ const schema = {
     scheduleSettings: {
         type: 'object',
         default: { time1: '10:00', time2: '16:00' }
+    },
+    salesGoal: {
+        type: 'number',
+        default: 0
     }
 };
 
@@ -250,6 +254,14 @@ ipcMain.handle('delete-service-account', async (event, accountId) => {
     let accounts = store.get('serviceAccounts', []);
     accounts = accounts.filter(acc => acc.id !== accountId);
     store.set('serviceAccounts', accounts);
+    return { success: true };
+});
+
+// --- Meta de Vendas ---
+ipcMain.handle('get-sales-goal', async () => store.get('salesGoal', 0));
+
+ipcMain.handle('save-sales-goal', async (_event, goal) => {
+    store.set('salesGoal', Number(goal));
     return { success: true };
 });
 
