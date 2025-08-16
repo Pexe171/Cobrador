@@ -270,54 +270,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 return acc ? acc.color : '#0078d4';
             });
 
-            if (!accountsChart) {
-                const ctx = canvas.getContext('2d');
-                accountsChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels,
-                        datasets: [{
-                            data,
-                            backgroundColor: colors,
-                            borderRadius: 6,
-                            borderSkipped: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            title: {
-                                display: true,
-                                text: 'Contas de Serviço',
-                                color: '#f5f5f5'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => `Total: ${context.formattedValue}`
-                                }
-                            }
+            const ctx = canvas.getContext('2d');
+
+            // Garante que apenas uma instância do gráfico exista para
+            // evitar o crescimento infinito do conteúdo ao atualizar
+            if (accountsChart) {
+                accountsChart.destroy();
+            }
+
+            accountsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Contas de Serviço',
+                            color: '#f5f5f5'
                         },
-                        scales: {
-                            x: {
-                                ticks: { color: '#f5f5f5' },
-                                grid: { display: false }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#f5f5f5', precision: 0 },
-                                grid: { color: 'rgba(255,255,255,0.1)' }
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Total: ${context.formattedValue}`
                             }
                         }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#f5f5f5' },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#f5f5f5', precision: 0 },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
                     }
-                });
-            } else {
-                accountsChart.data.labels = labels;
-                accountsChart.data.datasets[0].data = data;
-                accountsChart.data.datasets[0].backgroundColor = colors;
-                accountsChart.update();
-            }
+                }
+            });
         }
     }
 

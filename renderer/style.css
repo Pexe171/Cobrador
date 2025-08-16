@@ -223,6 +223,7 @@ button:disabled { background-color: #555; cursor: not-allowed; }
 
 /* Ajustes visuais para o gráfico de contas */
 #accounts-chart {
+    display: block;
     width: 100%;
     max-width: 100%;
     margin-top: 15px;
