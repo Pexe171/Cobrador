@@ -337,10 +337,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const ctx = canvas.getContext('2d');
 
             const options = {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false },
+                    legend: { display: true, labels: { color: '#f5f5f5' } },
                     title: {
                         display: true,
                         text: 'Contas de Serviço',
@@ -348,33 +348,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: {
                         callbacks: {
-                            label: (context) => `Total: ${context.formattedValue}`
+                            label: (context) => `${context.label}: ${context.formattedValue}`
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#f5f5f5' },
-                        grid: { display: false }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#f5f5f5', precision: 0 },
-                        grid: { color: 'rgba(255,255,255,0.1)' }
                     }
                 }
             };
 
             if (!accountsChart) {
                 accountsChart = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'pie',
                     data: {
                         labels,
                         datasets: [{
                             data,
-                            backgroundColor: colors,
-                            borderRadius: 6,
-                            borderSkipped: false
+                            backgroundColor: colors
                         }]
                     },
                     options
@@ -382,14 +369,12 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (accountsChart.ctx.canvas !== canvas) {
                 accountsChart.destroy();
                 accountsChart = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'pie',
                     data: {
                         labels,
                         datasets: [{
                             data,
-                            backgroundColor: colors,
-                            borderRadius: 6,
-                            borderSkipped: false
+                            backgroundColor: colors
                         }]
                     },
                     options
