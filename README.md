@@ -37,6 +37,13 @@ npm run dist   # executáveis para a plataforma
 ```
 Os artefatos são gerados em `dist_electron/`.
 
+## Atualização
+Gere um executável de atualização que preserva a pasta `dados/` do cliente:
+```bash
+npm run build-updater
+```
+O comando cria o pacote em `dist_atualizador/`. Envie esse arquivo para o cliente; ao executá-lo, ele solicitará a pasta de instalação atual, fará backup automático, substituirá os arquivos de código e manterá os dados intactos.
+
 ## Estrutura do Projeto
 - `main.js` – processo principal do Electron e orquestração da aplicação.
 - `whatsapp.js` – gestor de múltiplas sessões do WhatsApp.
