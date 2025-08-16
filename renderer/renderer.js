@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: document.getElementById('nav-clients'),
         addClient: document.getElementById('nav-add-client'),
         bulkMessage: document.getElementById('nav-bulk-message'),
+        accountControl: document.getElementById('nav-account-control'),
         settings: document.getElementById('nav-settings')
     };
     const views = {
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clients: document.getElementById('view-clients'),
         addClient: document.getElementById('view-add-client'),
         bulkMessage: document.getElementById('view-bulk-message'),
+        accountControl: document.getElementById('view-account-control'),
         settings: document.getElementById('view-settings')
     };
 
@@ -27,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clientNameField = document.getElementById('client-name');
     const clientPhoneField = document.getElementById('client-phone');
     const clientWhatsAppAccountSelect = document.getElementById('client-whatsapp-account');
+    const clientServiceAccountsSelect = document.getElementById('client-service-accounts');
     const purchaseDateField = document.getElementById('purchase-date');
     const validityDaysField = document.getElementById('validity-days');
     const calculatedDueDateField = document.getElementById('calculated-due-date');
@@ -40,6 +43,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Envio em Massa ---
     const bulkMessageContainer = document.getElementById('view-bulk-message');
 
+    // --- Contas de Serviço ---
+    const serviceAccountNameField = document.getElementById('service-account-name');
+    const serviceAccountValueField = document.getElementById('service-account-value');
+    const serviceAccountColorField = document.getElementById('service-account-color');
+    const btnSaveServiceAccount = document.getElementById('btn-save-service-account');
+    const serviceAccountsListEl = document.getElementById('service-accounts-list');
+    const totalSoldEl = document.getElementById('total-sold');
+    let accountsChart = null;
+
     // --- Configurações ---
     const scheduleTime1Input = document.getElementById('schedule-time-1');
     const scheduleTime2Input = document.getElementById('schedule-time-2');
@@ -52,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Variáveis de Estado ---
     let clientsMap = new Map();
     let whatsappAccountsMap = new Map();
+    let serviceAccounts = [];
     let currentModalConfirmCallback = null;
 
     // --- Funções de Modal ---
@@ -189,6 +202,82 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Lógica de Contas de Serviço ---
+    async function loadServiceAccounts() {
+        serviceAccounts = await window.electronAPI.getServiceAccounts();
+        renderServiceAccounts();
+        populateAccountsInClientForm();
+        updateFinancialSummary();
+    }
+
+    function renderServiceAccounts() {
+        serviceAccountsListEl.innerHTML = '';
+        if (!serviceAccounts.length) {
+            serviceAccountsListEl.innerHTML = '<p>Nenhuma conta cadastrada.</p>';
+            return;
+        }
+        serviceAccounts.forEach(acc => {
+            const div = document.createElement('div');
+            div.className = 'service-account-item';
+            div.dataset.id = acc.id;
+            div.innerHTML = `
+                <span class="service-account-color" style="background:${acc.color}"></span>
+                <span>${acc.name} - R$ ${Number(acc.value).toFixed(2)}</span>
+                <button data-action="delete" class="btn-danger">Excluir</button>
+            `;
+            serviceAccountsListEl.appendChild(div);
+        });
+    }
+
+    function populateAccountsInClientForm() {
+        if (!clientServiceAccountsSelect) return;
+        const prev = Array.from(clientServiceAccountsSelect.selectedOptions).map(o => o.value);
+        clientServiceAccountsSelect.innerHTML = serviceAccounts.map(acc => `<option value="${acc.id}">${acc.name} - R$ ${acc.value}</option>`).join('');
+        prev.forEach(val => {
+            const opt = Array.from(clientServiceAccountsSelect.options).find(o => o.value === val);
+            if (opt) opt.selected = true;
+        });
+    }
+
+    function renderClientAccounts(client) {
+        if (!client.purchasedAccounts || client.purchasedAccounts.length === 0) return '---';
+        return client.purchasedAccounts.map(id => {
+            const acc = serviceAccounts.find(a => a.id === id);
+            return acc ? `<span class="account-tag" style="background:${acc.color}">${acc.name}</span>` : '';
+        }).join(' ');
+    }
+
+    function updateFinancialSummary() {
+        const clients = Array.from(clientsMap.values());
+        let total = 0;
+        const counts = {};
+        clients.forEach(c => {
+            (c.purchasedAccounts || []).forEach(id => {
+                const acc = serviceAccounts.find(a => a.id === id);
+                if (acc) {
+                    total += Number(acc.value);
+                    counts[acc.name] = (counts[acc.name] || 0) + 1;
+                }
+            });
+        });
+        if (totalSoldEl) totalSoldEl.textContent = total.toFixed(2);
+        const ctx = document.getElementById('accounts-chart');
+        if (ctx) {
+            if (accountsChart) accountsChart.destroy();
+            accountsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(counts),
+                    datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(name => {
+                        const acc = serviceAccounts.find(a => a.name === name);
+                        return acc ? acc.color : '#0078d4';
+                    }) }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+        }
+    }
+
     // --- Lógica de Clientes ---
     async function loadClients() {
         const clients = await window.electronAPI.getClients();
@@ -197,13 +286,14 @@ document.addEventListener('DOMContentLoaded', () => {
         clients.forEach(client => clientsMap.set(String(client.id), client));
         renderClientsTable(Array.from(clientsMap.values()));
         renderWhatsAppAccounts();
+        updateFinancialSummary();
     }
 
     function renderClientsTable(clients) {
         clientsListTableBody.innerHTML = '';
         updateClientCount(clients.length, clientsMap.size);
         if (clients.length === 0) {
-            clientsListTableBody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>`;
+            clientsListTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>`;
             return;
         }
         clients.forEach(client => {
@@ -213,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const account = whatsappAccountsMap.get(client.whatsappAccountId);
             const accountName = account ? account.name : 'Nenhuma';
             const isContactable = client.contactableBy && client.contactableBy.includes(client.whatsappAccountId);
-            const contactableIcon = isContactable 
+            const contactableIcon = isContactable
                 ? `<i class="fas fa-check-circle contactable" title="Este cliente PODE receber mensagens da conta ${accountName}."></i>`
                 : `<i class="fas fa-times-circle not-contactable" title="Este cliente NÃO PODE receber mensagens. Conecte a conta ${accountName} e atualize a validação."></i>`;
 
@@ -221,6 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${client.name} ${contactableIcon}</td>
                 <td>${client.phone}</td>
                 <td>${accountName}</td>
+                <td>${renderClientAccounts(client)}</td>
                 <td>${formatDate(client.purchaseDate)}</td>
                 <td>${formatDate(client.dueDate)}</td>
                 <td class="${status.className}">${status.text}</td>
@@ -263,6 +354,12 @@ document.addEventListener('DOMContentLoaded', () => {
         validityDaysField.value = client.validityDays;
         populateWhatsAppAccountDropdown();
         clientWhatsAppAccountSelect.value = client.whatsappAccountId;
+        populateAccountsInClientForm();
+        if (client.purchasedAccounts) {
+            Array.from(clientServiceAccountsSelect.options).forEach(opt => {
+                opt.selected = client.purchasedAccounts.includes(opt.value);
+            });
+        }
         calculateDueDate();
         btnClearForm.style.display = 'inline-block';
         showView('addClient');
@@ -285,8 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearForm = () => {
         clientForm.reset();
         clientIdField.value = '';
+        Array.from(clientServiceAccountsSelect.options).forEach(opt => opt.selected = false);
         calculateDueDate();
         populateWhatsAppAccountDropdown();
+        populateAccountsInClientForm();
         btnClearForm.style.display = 'none';
         formTitle.textContent = 'Adicionar Cliente';
     };
@@ -370,7 +469,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 purchaseDate: purchaseDateField.value,
                 validityDays: parseInt(validityDaysField.value, 10),
                 dueDate: calculateDueDate(),
-                contactableBy: []
+                contactableBy: [],
+                purchasedAccounts: Array.from(clientServiceAccountsSelect.selectedOptions).map(o => o.value)
             };
             const result = clientIdField.value 
                 ? await window.electronAPI.updateClient(clientData)
@@ -437,6 +537,27 @@ document.addEventListener('DOMContentLoaded', () => {
                  });
             }
         });
+
+        btnSaveServiceAccount.addEventListener('click', async () => {
+            const name = serviceAccountNameField.value.trim();
+            const value = parseFloat(serviceAccountValueField.value);
+            const color = serviceAccountColorField.value;
+            if (!name || isNaN(value)) return;
+            await window.electronAPI.addServiceAccount({ id: `srv-${Date.now()}`, name, value, color });
+            serviceAccountNameField.value = '';
+            serviceAccountValueField.value = '';
+            await loadServiceAccounts();
+        });
+
+        serviceAccountsListEl.addEventListener('click', async (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const id = btn.closest('.service-account-item').dataset.id;
+            if (btn.dataset.action === 'delete') {
+                await window.electronAPI.deleteServiceAccount(id);
+                await loadServiceAccounts();
+            }
+        });
         
         btnForceCharge.addEventListener('click', async () => {
             showModal('A Processar...', 'A verificar e enviar cobranças para clientes vencidos e contactáveis...', 'info');
@@ -472,6 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Carregamento Inicial
         await loadAndRenderWhatsAppAccounts();
+        await loadServiceAccounts();
         await loadClients();
         showView('whatsappStatus');
     }

@@ -14,11 +14,15 @@ const schema = {
     },
     clients: {
         type: 'array',
-        default: [] 
+        default: []
     },
-    scheduleSettings: { 
-        type: 'object', 
-        default: { time1: '10:00', time2: '16:00' } 
+    serviceAccounts: {
+        type: 'array',
+        default: []
+    },
+    scheduleSettings: {
+        type: 'object',
+        default: { time1: '10:00', time2: '16:00' }
     }
 };
 
@@ -230,6 +234,23 @@ ipcMain.handle('send-bulk-message', async (event, accountId, messageText) => {
         }
     }
     return { success: true, message: `Envio concluído. ${successCount} mensagens enviadas, ${failureCount} falhas.` };
+});
+
+// --- Handlers de Contas de Serviço ---
+ipcMain.handle('get-service-accounts', async () => store.get('serviceAccounts', []));
+
+ipcMain.handle('add-service-account', async (event, account) => {
+    const accounts = store.get('serviceAccounts', []);
+    accounts.push(account);
+    store.set('serviceAccounts', accounts);
+    return { success: true };
+});
+
+ipcMain.handle('delete-service-account', async (event, accountId) => {
+    let accounts = store.get('serviceAccounts', []);
+    accounts = accounts.filter(acc => acc.id !== accountId);
+    store.set('serviceAccounts', accounts);
+    return { success: true };
 });
 
 // --- Handlers de Configurações ---

@@ -27,6 +27,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   forceChargeDueClients: () => ipcRenderer.invoke('force-charge-due-clients'),
   sendBulkMessage: (accountId, messageText) => ipcRenderer.invoke('send-bulk-message', accountId, messageText),
 
+  // Contas de Serviço
+  getServiceAccounts: () => ipcRenderer.invoke('get-service-accounts'),
+  addServiceAccount: (account) => ipcRenderer.invoke('add-service-account', account),
+  deleteServiceAccount: (id) => ipcRenderer.invoke('delete-service-account', id),
+
   // Funções de Configurações
   getScheduleSettings: () => ipcRenderer.invoke('get-schedule-settings'),
   saveScheduleSettings: (settings) => ipcRenderer.invoke('save-schedule-settings', settings),
