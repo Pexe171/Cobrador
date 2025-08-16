@@ -45,7 +45,7 @@ Os artefatos são gerados em `dist_electron/`.
 - `utils.js` – funções auxiliares.
 
 ## Testes
-Ainda não há testes automatizados configurados:
+Os utilitários possuem testes básicos executados com o runner nativo do Node.js:
 ```bash
 npm test
 ```

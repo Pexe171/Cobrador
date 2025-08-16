@@ -32,7 +32,7 @@ function formatMessage(template, context) {
 /**
  * Calcula a diferença de dias entre a data atual e uma data de vencimento.
  * Retorna uma string descritiva (ex: "Hoje", "Vence em X dia(s)", "Vencido há X dia(s)").
- * @param {string} dueDateString A data de vencimento no formato<y_bin_46>-MM-DD.
+ * @param {string} dueDateString A data de vencimento no formato YYYY-MM-DD.
  * @returns {string} Uma string descrevendo o status do vencimento.
  */
 function getDaysUntilDue(dueDateString) {
