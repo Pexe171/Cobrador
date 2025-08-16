@@ -291,23 +291,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const goalCanvas = document.getElementById('goal-chart');
         if (goalCanvas) {
             const ctxGoal = goalCanvas.getContext('2d');
-            if (goalChart) goalChart.destroy();
-            if (salesGoal > 0) {
-                const percentRaw = (total / salesGoal) * 100;
-                const percent = Math.min(percentRaw, 100);
-                const dataGoal = [percent, 100 - percent];
+
+            if (!goalChart) {
                 goalChart = new Chart(ctxGoal, {
                     type: 'doughnut',
-                    data: { labels: ['Vendido', 'Restante'], datasets: [{ data: dataGoal, backgroundColor: ['#4caf50', '#cccccc'], borderWidth: 0 }] },
-                    options: { maintainAspectRatio: false, plugins: { legend: { display: true } } }
+                    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
-            } else {
+            } else if (goalChart.ctx.canvas !== goalCanvas) {
+                goalChart.destroy();
                 goalChart = new Chart(ctxGoal, {
                     type: 'doughnut',
-                    data: { labels: ['Sem meta'], datasets: [{ data: [1], backgroundColor: ['#cccccc'], borderWidth: 0 }] },
+                    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             }
+
+            if (salesGoal > 0) {
+                const percentRaw = (total / salesGoal) * 100;
+                const percent = Math.min(percentRaw, 100);
+                goalChart.data.labels = ['Vendido', 'Restante'];
+                goalChart.data.datasets[0].data = [percent, 100 - percent];
+                goalChart.data.datasets[0].backgroundColor = ['#4caf50', '#cccccc'];
+                goalChart.options.plugins.legend.display = true;
+            } else {
+                goalChart.data.labels = ['Sem meta'];
+                goalChart.data.datasets[0].data = [1];
+                goalChart.data.datasets[0].backgroundColor = ['#cccccc'];
+                goalChart.options.plugins.legend.display = false;
+            }
+
+            goalChart.update();
         }
 
         const canvas = document.getElementById('accounts-chart');
@@ -322,52 +336,70 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const ctx = canvas.getContext('2d');
 
-            // Garante que apenas uma instância do gráfico exista para
-            // evitar o crescimento infinito do conteúdo ao atualizar
-            if (accountsChart) {
-                accountsChart.destroy();
-            }
-
-            accountsChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [{
-                        data,
-                        backgroundColor: colors,
-                        borderRadius: 6,
-                        borderSkipped: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        title: {
-                            display: true,
-                            text: 'Contas de Serviço',
-                            color: '#f5f5f5'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => `Total: ${context.formattedValue}`
-                            }
-                        }
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Contas de Serviço',
+                        color: '#f5f5f5'
                     },
-                    scales: {
-                        x: {
-                            ticks: { color: '#f5f5f5' },
-                            grid: { display: false }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#f5f5f5', precision: 0 },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Total: ${context.formattedValue}`
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#f5f5f5' },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#f5f5f5', precision: 0 },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    }
                 }
-            });
+            };
+
+            if (!accountsChart) {
+                accountsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options
+                });
+            } else if (accountsChart.ctx.canvas !== canvas) {
+                accountsChart.destroy();
+                accountsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options
+                });
+            } else {
+                accountsChart.data.labels = labels;
+                accountsChart.data.datasets[0].data = data;
+                accountsChart.data.datasets[0].backgroundColor = colors;
+                accountsChart.update();
+            }
         }
     }
 
