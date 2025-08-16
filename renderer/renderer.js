@@ -277,11 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (goalProgressEl) {
             if (salesGoal > 0) {
-                const percent = (total / salesGoal) * 100;
+                const percentRaw = (total / salesGoal) * 100;
                 if (total <= salesGoal) {
-                    goalProgressEl.textContent = `Vendido: R$ ${total.toFixed(2)} | Restante: R$ ${(salesGoal - total).toFixed(2)} | ${percent.toFixed(1)}% da meta`;
+                    goalProgressEl.textContent = `Vendido: R$ ${total.toFixed(2)} | Restante: R$ ${(salesGoal - total).toFixed(2)} | ${percentRaw.toFixed(1)}% da meta`;
                 } else {
-                    goalProgressEl.textContent = `Meta ultrapassada! ${percent.toFixed(1)}% do objetivo alcançado.`;
+                    goalProgressEl.textContent = `Meta ultrapassada! ${percentRaw.toFixed(1)}% do objetivo alcançado.`;
                 }
             } else {
                 goalProgressEl.textContent = 'Defina uma meta para acompanhar o progresso.';
@@ -293,15 +293,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const ctxGoal = goalCanvas.getContext('2d');
             if (goalChart) goalChart.destroy();
             if (salesGoal > 0) {
-                const achieved = Math.min(total, salesGoal);
-                const remaining = Math.max(salesGoal - total, 0);
-                const exceeded = total > salesGoal ? total - salesGoal : 0;
-                const dataGoal = exceeded ? [salesGoal, exceeded] : [achieved, remaining];
-                const labelsGoal = exceeded ? ['Meta', 'Excedente'] : ['Vendido', 'Restante'];
-                const colorsGoal = exceeded ? ['#4caf50', '#ff9800'] : ['#4caf50', '#cccccc'];
+                const percentRaw = (total / salesGoal) * 100;
+                const percent = Math.min(percentRaw, 100);
+                const dataGoal = [percent, 100 - percent];
                 goalChart = new Chart(ctxGoal, {
                     type: 'doughnut',
-                    data: { labels: labelsGoal, datasets: [{ data: dataGoal, backgroundColor: colorsGoal, borderWidth: 0 }] },
+                    data: { labels: ['Vendido', 'Restante'], datasets: [{ data: dataGoal, backgroundColor: ['#4caf50', '#cccccc'], borderWidth: 0 }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: true } } }
                 });
             } else {
