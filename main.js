@@ -81,7 +81,11 @@ async function handleWhatsAppChats(accountId, chats) {
     console.log('[Validation] Exemplo de 5 números recebidos do WhatsApp:', chats.slice(0, 5).map(chat => chat.id.user));
 
     const clients = store.get('clients', []);
-    const whatsappNumbers = new Set(chats.map(chat => chat.id.user));
+    const whatsappNumbers = new Set();
+    for (const chat of chats) {
+        // Armazena apenas o identificador do utilizador para reduzir o uso de memória
+        whatsappNumbers.add(chat.id.user);
+    }
     let updatedClients = 0;
 
     clients.forEach(client => {
@@ -112,6 +116,13 @@ async function handleWhatsAppChats(accountId, chats) {
         }
     } else {
         console.log(`[Validation] Nenhuma alteração no status de contacto dos clientes.`);
+    }
+
+    // Libera memórias das estruturas temporárias
+    whatsappNumbers.clear();
+    chats.length = 0;
+    if (global.gc) {
+        try { global.gc(); } catch (_) { /* ignore */ }
     }
 }
 

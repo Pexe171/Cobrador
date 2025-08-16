@@ -2,6 +2,21 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
 
+// Conjunto de parâmetros do Puppeteer pensados para reduzir o consumo de memória
+// ao instanciar múltiplos clientes. Estes "flags" desativam funcionalidades
+// supérfluas do Chromium que normalmente consomem RAM sem benefício para o
+// aplicativo Electron.
+const PUPPETEER_ARGS = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-gpu',
+    '--disable-dev-shm-usage',
+    '--disable-extensions',
+    '--single-process',
+    '--no-zygote',
+    '--renderer-process-limit=1'
+];
+
 /**
  * Gestor de múltiplas instâncias de clientes WhatsApp.
  */
@@ -62,7 +77,8 @@ const clientsManager = {
             }),
             puppeteer: {
                 headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+                // Utiliza a lista de parâmetros definida acima para otimizar o uso de memória
+                args: PUPPETEER_ARGS
             }
         });
 
@@ -108,10 +124,15 @@ const clientsManager = {
             throw new Error('A conta não está conectada para revalidar os chats.');
         }
         try {
-            const chats = await clientState.client.getChats();
+            let chats = await clientState.client.getChats();
             console.log(`[WhatsAppManager-${accountId}] Revalidação: ${chats.length} chats encontrados.`);
             if (this.chatValidationCallback) {
                 this.chatValidationCallback(accountId, chats);
+            }
+            // Libera memória das listas de chats após uso
+            chats = null;
+            if (global.gc) {
+                try { global.gc(); } catch (_) { /* ignore */ }
             }
         } catch (err) {
             console.error(`[WhatsAppManager-${accountId}] Erro ao revalidar chats:`, err);
@@ -128,6 +149,10 @@ const clientsManager = {
         const clientState = this.clients.get(accountId);
         if (clientState?.client) {
             await clientState.client.destroy().catch(() => {});
+            // Libera memória do processo Chromium associado, quando possível
+            if (global.gc) {
+                try { global.gc(); } catch (_) { /* ignore */ }
+            }
         }
         
         if (fullRemove) {
