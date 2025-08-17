@@ -264,16 +264,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('accounts-chart');
         if (ctx) {
             if (accountsChart) accountsChart.destroy();
+
+            const labels = Object.keys(counts);
+            const values = Object.values(counts);
+            const colors = labels.map(name => {
+                const acc = serviceAccounts.find(a => a.name === name);
+                return acc ? acc.color : '#0078d4';
+            });
+
             accountsChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(counts),
-                    datasets: [{ data: Object.values(counts), backgroundColor: Object.keys(counts).map(name => {
-                        const acc = serviceAccounts.find(a => a.name === name);
-                        return acc ? acc.color : '#0078d4';
-                    }) }]
+                    labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors,
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
                 },
-                options: { plugins: { legend: { display: false } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.1)' } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Vendas por Conta' }
+                    }
+                }
             });
         }
     }
