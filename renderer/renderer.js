@@ -69,14 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- I.A. ---
     const iaFileInput = document.getElementById('ia-file-input');
     const iaLoadBtn = document.getElementById('ia-load-files');
-    const iaClientsSelect = document.getElementById('ia-clients');
-    const iaMessagePreview = document.getElementById('ia-message-preview');
-    const iaAnalyzeBtn = document.getElementById('ia-analyze');
-    const iaResults = document.getElementById('ia-results');
-    const iaTabs = iaResults ? iaResults.querySelectorAll('.ia-tabs li') : [];
-    const iaResumo = document.getElementById('ia-resumo');
-    const iaIntencoes = document.getElementById('ia-intencoes');
-    const iaSugestao = document.getElementById('ia-sugestao');
+    const iaLog = document.getElementById('ia-log');
 
     // --- Modal ---
     const modalOverlay = document.getElementById('custom-modal-overlay');
@@ -86,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let whatsappAccountsMap = new Map();
     let serviceAccounts = [];
     let currentModalConfirmCallback = null;
-    let iaConversations = new Map();
 
     // --- Funções de Modal ---
     function showModal(title, message, type = 'info', onConfirm = null) {
@@ -622,67 +614,28 @@ document.addEventListener('DOMContentLoaded', () => {
         iaLoadBtn.addEventListener('click', () => iaFileInput.click());
 
         iaFileInput.addEventListener('change', async (e) => {
-            iaConversations.clear();
-            iaClientsSelect.innerHTML = '';
+            iaLog.innerHTML = '';
             const files = Array.from(e.target.files);
             for (const file of files) {
                 try {
                     const text = await file.text();
                     const json = JSON.parse(text);
-                    iaConversations.set(json.cliente, json);
-                    const norm = s => String(s).replace(/\D/g, '');
-                    const clientData = Array.from(clientsMap.values()).find(c => norm(c.phone) === norm(json.cliente));
-                    const option = document.createElement('option');
-                    option.value = json.cliente;
-                    option.textContent = `${clientData ? clientData.name : 'Desconhecido'} (${json.cliente})`;
-                    iaClientsSelect.appendChild(option);
+                    const { success, result } = await window.electronAPI.analyzeConversation(json);
+                    const item = document.createElement('div');
+                    item.classList.add('ia-log-item');
+                    if (success) {
+                        const { resumo, intencoes, sugestao, log } = result;
+                        item.innerHTML = `<strong>${log}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
+                          (intencoes || []).map(i => `<li>${i}</li>`).join('') +
+                          `</ul><em>Sugestão:</em> ${sugestao || ''}`;
+                    } else {
+                        item.innerHTML = 'Erro ao analisar conversa.';
+                    }
+                    iaLog.appendChild(item);
                 } catch (err) {
                     console.error('Erro ao ler arquivo IA', err);
                 }
             }
-            if (iaClientsSelect.options.length > 0) {
-                iaClientsSelect.selectedIndex = 0;
-                iaClientsSelect.dispatchEvent(new Event('change'));
-            }
-        });
-
-        iaClientsSelect.addEventListener('change', () => {
-            const conv = iaConversations.get(iaClientsSelect.value);
-            if (!conv) { iaMessagePreview.textContent = ''; return; }
-            const lastMsgs = conv.mensagens.slice(-5).map(m => `${m.hora} - ${m.de}: ${m.texto}`).join('\n');
-            iaMessagePreview.textContent = lastMsgs;
-        });
-
-        iaAnalyzeBtn.addEventListener('click', async () => {
-            const conv = iaConversations.get(iaClientsSelect.value);
-            if (!conv) return;
-            iaAnalyzeBtn.textContent = 'Analisando...';
-            iaAnalyzeBtn.disabled = true;
-            const result = await window.electronAPI.analyzeConversation(conv);
-            iaAnalyzeBtn.textContent = 'Analisar Conversa';
-            iaAnalyzeBtn.disabled = false;
-            if (result && result.success) {
-                iaResults.classList.remove('hidden');
-                iaTabs.forEach(t => t.classList.remove('active'));
-                if (iaTabs[0]) iaTabs[0].classList.add('active');
-                [iaResumo, iaIntencoes, iaSugestao].forEach(el => el.classList.add('hidden'));
-                iaResumo.classList.remove('hidden');
-                iaResumo.textContent = result.result.resumo || '';
-                iaIntencoes.innerHTML = '<ul>' + (result.result.intencoes || []).map(i => `<li>${i}</li>`).join('') + '</ul>';
-                iaSugestao.textContent = result.result.sugestao || '';
-            }
-        });
-
-        iaTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                iaTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const tabId = tab.dataset.tab;
-                [iaResumo, iaIntencoes, iaSugestao].forEach(el => el.classList.add('hidden'));
-                if (tabId === 'resumo') iaResumo.classList.remove('hidden');
-                if (tabId === 'intencoes') iaIntencoes.classList.remove('hidden');
-                if (tabId === 'sugestao') iaSugestao.classList.remove('hidden');
-            });
         });
 
         // Listeners do Main Process

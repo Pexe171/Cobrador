@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
 const API_KEY = 'AIzaSyBBfP9jDBZzcuFxlf3VkU19uiQfoZn6ofw';
 
@@ -35,16 +36,38 @@ async function analyzeConversation(conversation) {
     result = { resumo: '', intencoes: [], sugestao: '' };
   }
 
-  await saveAnalysis(conversation.cliente, result);
-  return result;
+  await saveAnalysis(conversation, result, prompt);
+  return { ...result, log: 'Conversa adicionada ao banco de dados com sucesso.' };
 }
 
-async function saveAnalysis(cliente, resultado) {
+async function saveAnalysis(conversation, resultado, prompt) {
   const dir = path.join(__dirname, 'analises');
   await fs.promises.mkdir(dir, { recursive: true });
-  const date = new Date().toISOString().split('T')[0];
-  const file = path.join(dir, `${cliente}-${date}.json`);
-  await fs.promises.writeFile(file, JSON.stringify({ cliente, data: date, resultado }, null, 2));
+  const dbPath = path.join(dir, 'analises.db');
+  const date = new Date().toISOString();
+  const mensagens = JSON.stringify(conversation.mensagens);
+  const resultadoStr = JSON.stringify(resultado);
+
+  await new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath);
+    db.serialize(() => {
+      db.run(`CREATE TABLE IF NOT EXISTS conversas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT,
+        mensagens TEXT,
+        prompt TEXT,
+        resultado TEXT
+      )`);
+      db.run(
+        'INSERT INTO conversas (data, mensagens, prompt, resultado) VALUES (?, ?, ?, ?)',
+        [date, mensagens, prompt, resultadoStr],
+        err => {
+          db.close();
+          if (err) reject(err); else resolve();
+        }
+      );
+    });
+  });
 }
 
 module.exports = { analyzeConversation };

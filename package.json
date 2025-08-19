@@ -30,7 +30,8 @@
     "qrcode-terminal": "^0.12.0",
     "uuid": "^9.0.1",
     "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main",
-    "tar": "^6.1.11"
+    "tar": "^6.1.11",
+    "sqlite3": "^5.1.6"
   },
   "build": {
     "appId": "com.start.cobradorautomatico",
