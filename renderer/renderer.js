@@ -611,26 +611,101 @@ document.addEventListener('DOMContentLoaded', () => {
             renderClientsTable(filteredClients);
         });
 
+iaFileInput.addEventListener('change', async (e) => {
+    iaLog.innerHTML = '';
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+
+            const result = await window.electronAPI.analyzeConversation(json);
+            const item = document.createElement('div');
+            item.classList.add('ia-log-item');
+
+            if (result && result.success) {
+                const { resumo, intencoes, sugestao, log } = result.result || result;
+                item.innerHTML = `<strong>${log || json.cliente}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
+                  (intencoes || []).map(i => `<li>${i}</li>`).join('') +
+                  `</ul><em>Sugestão:</em> ${sugestao || ''}`;
+            } else {
+                item.innerHTML = `<strong>${json.cliente}</strong><br>Erro ao analisar conversa.`;
+            }
+
+            iaLog.appendChild(item);
+        } catch (err) {
+            console.error('Erro ao ler arquivo IA', err);
+        }
+            }
+        });
+
+        // Listeners do Main Process
+        window.electronAPI.onWhatsAppStateChange(() => { loadAndRenderWhatsAppAccounts(); });
+        window.electronAPI.onWhatsAppQRCode((accountId, qr) => {
+            const qrContainer = document.getElementById(`qr-container-${accountId}`);
+            if (qrContainer) { qrContainer.innerHTML = qr ? `<img src="${qr}" alt="QR Code">` : '<p>Erro</p>'; }
+            const connectBtn = whatsappAccountsListEl.querySelector(`.account-item[data-account-id="${accountId}"] .btn-connect`);
+            if(connectBtn) { connectBtn.textContent = 'Conectar'; connectBtn.disabled = false; }
+        });
+        window.electronAPI.onClientsUpdated(() => { console.log('[UI] Clientes atualizados. A recarregar.'); loadClients(); });
+
+        // Carregamento Inicial
+        await loadSalesGoal();
+        await loadAndRenderWhatsAppAccounts();
+        await loadServiceAccounts();
+        await loadClients();
+        showView('whatsappStatus');
+    }
+
+    initializeApp();
+});
+eSettingsStatusEl.className = `settings-status ${result.success ? 'alert-success' : 'alert-danger'}`;
+            setTimeout(() => { scheduleSettingsStatusEl.textContent = ''; scheduleSettingsStatusEl.className = 'settings-status'; }, 4000);
+        });
+
+        btnGenerateUpdater.addEventListener('click', async () => {
+            generateUpdaterStatusEl.textContent = 'A gerar...';
+            const result = await window.electronAPI.generateUpdater();
+            generateUpdaterStatusEl.textContent = result.message;
+            generateUpdaterStatusEl.className = `settings-status ${result.success ? 'alert-success' : 'alert-danger'}`;
+            setTimeout(() => { generateUpdaterStatusEl.textContent = ''; generateUpdaterStatusEl.className = 'settings-status'; }, 4000);
+        });
+
+        searchClientField.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            const allClients = Array.from(clientsMap.values());
+            if (!searchTerm) { renderClientsTable(allClients); return; }
+            const filteredClients = allClients.filter(client => client.name.toLowerCase().includes(searchTerm) || client.phone.includes(searchTerm));
+            renderClientsTable(filteredClients);
+        });
+
         iaLoadBtn.addEventListener('click', () => iaFileInput.click());
 
-        iaFileInput.addEventListener('change', async (e) => {
-            iaLog.innerHTML = '';
-            const files = Array.from(e.target.files);
-            for (const file of files) {
-                try {
-                    const text = await file.text();
-                    const json = JSON.parse(text);
-                    const { success, result } = await window.electronAPI.analyzeConversation(json);
-                    const item = document.createElement('div');
-                    item.classList.add('ia-log-item');
-                    if (success) {
-                        const { resumo, intencoes, sugestao, log } = result;
-                        item.innerHTML = `<strong>${log}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
-                          (intencoes || []).map(i => `<li>${i}</li>`).join('') +
-                          `</ul><em>Sugestão:</em> ${sugestao || ''}`;
-                    } else {
-                        item.innerHTML = 'Erro ao analisar conversa.';
-                    }
+       iaFileInput.addEventListener('change', async (e) => {
+    iaLog.innerHTML = '';
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+        try {
+            const text = await file.text();
+            const json = JSON.parse(text);
+
+            const result = await window.electronAPI.analyzeConversation(json);
+            const item = document.createElement('div');
+            item.classList.add('ia-log-item');
+
+            if (result && result.success) {
+                const { resumo, intencoes, sugestao, log } = result.result || result;
+                item.innerHTML = `<strong>${log || json.cliente}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
+                  (intencoes || []).map(i => `<li>${i}</li>`).join('') +
+                  `</ul><em>Sugestão:</em> ${sugestao || ''}`;
+            } else {
+                item.innerHTML = `<strong>${json.cliente}</strong><br>Erro ao analisar conversa.`;
+            }
+
+            iaLog.appendChild(item);
+        } catch (err) {
+            console.error('Erro ao ler arquivo IA', err);
+        }
                     iaLog.appendChild(item);
                 } catch (err) {
                     console.error('Erro ao ler arquivo IA', err);

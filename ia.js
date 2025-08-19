@@ -40,6 +40,9 @@ async function analyzeConversation(conversation) {
   return { ...result, log: 'Conversa adicionada ao banco de dados com sucesso.' };
 }
 
+/**
+ * Salva a análise no banco SQLite
+ */
 async function saveAnalysis(conversation, resultado, prompt) {
   const dir = path.join(__dirname, 'analises');
   await fs.promises.mkdir(dir, { recursive: true });
@@ -54,13 +57,14 @@ async function saveAnalysis(conversation, resultado, prompt) {
       db.run(`CREATE TABLE IF NOT EXISTS conversas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         data TEXT,
+        cliente TEXT,
         mensagens TEXT,
         prompt TEXT,
         resultado TEXT
       )`);
       db.run(
-        'INSERT INTO conversas (data, mensagens, prompt, resultado) VALUES (?, ?, ?, ?)',
-        [date, mensagens, prompt, resultadoStr],
+        'INSERT INTO conversas (data, cliente, mensagens, prompt, resultado) VALUES (?, ?, ?, ?, ?)',
+        [date, conversation.cliente, mensagens, prompt, resultadoStr],
         err => {
           db.close();
           if (err) reject(err); else resolve();
@@ -71,4 +75,3 @@ async function saveAnalysis(conversation, resultado, prompt) {
 }
 
 module.exports = { analyzeConversation };
-
