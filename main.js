@@ -6,6 +6,7 @@ const { setupCronJobs, checkAndSendReminders } = require('./cronJobs');
 const { clientsManager } = require('./whatsapp');
 const { formatMessage, formatDate } = require('./utils');
 const { execFile } = require('child_process');
+const { analyzeConversation } = require('./ia');
 
 // Schema da base de dados local
 const schema = {
@@ -299,5 +300,16 @@ ipcMain.handle('generate-updater', async () => {
     } catch (error) {
         console.error('[Atualizador]', error);
         return { success: false, message: 'Falha ao gerar atualizador.' };
+    }
+});
+
+// --- Integração com I.A. ---
+ipcMain.handle('analyze-conversation', async (_event, conversation) => {
+    try {
+        const result = await analyzeConversation(conversation);
+        return { success: true, result };
+    } catch (error) {
+        console.error('[IA]', error);
+        return { success: false, message: 'Falha ao analisar conversa.' };
     }
 });
