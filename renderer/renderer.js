@@ -133,10 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funções de Navegação e Formato ---
     function showView(viewId) {
-        Object.values(views).forEach(v => v.classList.add('hidden'));
-        if (views[viewId]) views[viewId].classList.remove('hidden');
-        Object.values(navLinks).forEach(l => l.classList.remove('active'));
-        if (navLinks[viewId]) navLinks[viewId].classList.add('active');
+        Object.values(views).forEach(v => v && v.classList.add('hidden'));
+        const viewEl = views[viewId];
+        if (viewEl) viewEl.classList.remove('hidden');
+
+        Object.values(navLinks).forEach(l => l && l.classList.remove('active'));
+        const navEl = navLinks[viewId];
+        if (navEl) navEl.classList.add('active');
     }
 
     function formatDate(dateString) {
@@ -464,7 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initializeApp() {
         // Navegação
         Object.keys(navLinks).forEach(key => {
-            navLinks[key].addEventListener('click', (e) => {
+            const linkEl = navLinks[key];
+            if (!linkEl) return;
+            linkEl.addEventListener('click', (e) => {
                 e.preventDefault();
                 showView(key);
                 if (key === 'settings') loadScheduleSettings();
@@ -681,31 +686,27 @@ eSettingsStatusEl.className = `settings-status ${result.success ? 'alert-success
 
         iaLoadBtn.addEventListener('click', () => iaFileInput.click());
 
-       iaFileInput.addEventListener('change', async (e) => {
-    iaLog.innerHTML = '';
-    const files = Array.from(e.target.files);
-    for (const file of files) {
-        try {
-            const text = await file.text();
-            const json = JSON.parse(text);
+        iaFileInput.addEventListener('change', async (e) => {
+            iaLog.innerHTML = '';
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                try {
+                    const text = await file.text();
+                    const json = JSON.parse(text);
 
-            const result = await window.electronAPI.analyzeConversation(json);
-            const item = document.createElement('div');
-            item.classList.add('ia-log-item');
+                    const result = await window.electronAPI.analyzeConversation(json);
+                    const item = document.createElement('div');
+                    item.classList.add('ia-log-item');
 
-            if (result && result.success) {
-                const { resumo, intencoes, sugestao, log } = result.result || result;
-                item.innerHTML = `<strong>${log || json.cliente}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
-                  (intencoes || []).map(i => `<li>${i}</li>`).join('') +
-                  `</ul><em>Sugestão:</em> ${sugestao || ''}`;
-            } else {
-                item.innerHTML = `<strong>${json.cliente}</strong><br>Erro ao analisar conversa.`;
-            }
+                    if (result && result.success) {
+                        const { resumo, intencoes, sugestao, log } = result.result || result;
+                        item.innerHTML = `<strong>${log || json.cliente}</strong><br><em>Resumo:</em> ${resumo || ''}<br><em>Intenções:</em> <ul>` +
+                            (intencoes || []).map(i => `<li>${i}</li>`).join('') +
+                            `</ul><em>Sugestão:</em> ${sugestao || ''}`;
+                    } else {
+                        item.innerHTML = `<strong>${json.cliente}</strong><br>Erro ao analisar conversa.`;
+                    }
 
-            iaLog.appendChild(item);
-        } catch (err) {
-            console.error('Erro ao ler arquivo IA', err);
-        }
                     iaLog.appendChild(item);
                 } catch (err) {
                     console.error('Erro ao ler arquivo IA', err);
