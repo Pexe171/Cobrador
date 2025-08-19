@@ -18,6 +18,7 @@
                     <li><a href="#" id="nav-bulk-message"><i class="fas fa-paper-plane"></i> Envio em Massa</a></li>
                     <li><a href="#" id="nav-account-control"><i class="fas fa-chart-line"></i> Controle de Contas</a></li>
                     <li><a href="#" id="nav-settings"><i class="fas fa-cog"></i> Configurações</a></li>
+                    <li><a href="#" id="nav-ia"><i class="fas fa-robot"></i> I.A.</a></li>
                 </ul>
             </nav>
         </div>
@@ -169,6 +170,31 @@
                         <p>Gerar executável de atualização para distribuir aos clientes.</p>
                         <button id="btn-generate-updater">Gerar Atualizador</button>
                         <div id="generate-updater-status" class="settings-status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: I.A. -->
+            <div id="view-ia" class="content-view hidden">
+                <div class="content-card">
+                    <h2>Inteligência Artificial</h2>
+                    <input type="file" id="ia-file-input" accept="application/json" multiple style="display:none">
+                    <button id="ia-load-files" class="btn-primary-alt"><i class="fas fa-upload"></i> Carregar Conversas</button>
+                    <div class="ia-client-select">
+                        <label for="ia-clients">Clientes:</label>
+                        <select id="ia-clients"></select>
+                    </div>
+                    <div id="ia-message-preview" class="ia-messages"></div>
+                    <button id="ia-analyze" class="btn-primary-alt">Analisar Conversa</button>
+                    <div id="ia-results" class="ia-results hidden">
+                        <ul class="ia-tabs">
+                            <li data-tab="resumo" class="active">Resumo</li>
+                            <li data-tab="intencoes">Intenções</li>
+                            <li data-tab="sugestao">Sugestão de Resposta</li>
+                        </ul>
+                        <div id="ia-resumo" class="ia-tab-content"></div>
+                        <div id="ia-intencoes" class="ia-tab-content hidden"></div>
+                        <div id="ia-sugestao" class="ia-tab-content hidden"></div>
                     </div>
                 </div>
             </div>

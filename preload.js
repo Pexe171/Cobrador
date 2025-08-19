@@ -42,6 +42,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   generateUpdater: () => ipcRenderer.invoke('generate-updater'),
 
+  analyzeConversation: (conversation) => ipcRenderer.invoke('analyze-conversation', conversation),
+
   // Gestão de Listeners
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
 });
