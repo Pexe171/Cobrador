@@ -35,16 +35,19 @@ async function analyzeConversation(conversation) {
     result = { resumo: '', intencoes: [], sugestao: '' };
   }
 
-  await saveAnalysis(conversation.cliente, result);
+  await saveAnalysis(conversation, result, prompt);
   return result;
 }
 
-async function saveAnalysis(cliente, resultado) {
+async function saveAnalysis(conversation, resultado, prompt) {
   const dir = path.join(__dirname, 'analises');
   await fs.promises.mkdir(dir, { recursive: true });
-  const date = new Date().toISOString().split('T')[0];
-  const file = path.join(dir, `${cliente}-${date}.json`);
-  await fs.promises.writeFile(file, JSON.stringify({ cliente, data: date, resultado }, null, 2));
+  const date = new Date().toISOString();
+  const file = path.join(dir, `${conversation.cliente}-${date.split('T')[0]}.json`);
+  const registro = { cliente: conversation.cliente, data: date, mensagens: conversation.mensagens, prompt, resultado };
+  await fs.promises.writeFile(file, JSON.stringify(registro, null, 2));
+  const logFile = path.join(dir, 'log.jsonl');
+  await fs.promises.appendFile(logFile, JSON.stringify(registro) + '\n');
 }
 
 module.exports = { analyzeConversation };
