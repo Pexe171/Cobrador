@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 
 const API_KEY = 'AIzaSyBBfP9jDBZzcuFxlf3VkU19uiQfoZn6ofw';
 
@@ -36,18 +37,41 @@ async function analyzeConversation(conversation) {
   }
 
   await saveAnalysis(conversation, result, prompt);
-  return result;
+  return { ...result, log: 'Conversa adicionada ao banco de dados com sucesso.' };
 }
 
+/**
+ * Salva a análise no banco SQLite
+ */
 async function saveAnalysis(conversation, resultado, prompt) {
   const dir = path.join(__dirname, 'analises');
   await fs.promises.mkdir(dir, { recursive: true });
+  const dbPath = path.join(dir, 'analises.db');
   const date = new Date().toISOString();
-  const file = path.join(dir, `${conversation.cliente}-${date.split('T')[0]}.json`);
-  const registro = { cliente: conversation.cliente, data: date, mensagens: conversation.mensagens, prompt, resultado };
-  await fs.promises.writeFile(file, JSON.stringify(registro, null, 2));
-  const logFile = path.join(dir, 'log.jsonl');
-  await fs.promises.appendFile(logFile, JSON.stringify(registro) + '\n');
+  const mensagens = JSON.stringify(conversation.mensagens);
+  const resultadoStr = JSON.stringify(resultado);
+
+  await new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath);
+    db.serialize(() => {
+      db.run(`CREATE TABLE IF NOT EXISTS conversas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        data TEXT,
+        cliente TEXT,
+        mensagens TEXT,
+        prompt TEXT,
+        resultado TEXT
+      )`);
+      db.run(
+        'INSERT INTO conversas (data, cliente, mensagens, prompt, resultado) VALUES (?, ?, ?, ?, ?)',
+        [date, conversation.cliente, mensagens, prompt, resultadoStr],
+        err => {
+          db.close();
+          if (err) reject(err); else resolve();
+        }
+      );
+    });
+  });
 }
 
 module.exports = { analyzeConversation };
