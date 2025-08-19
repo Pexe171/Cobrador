@@ -15,6 +15,7 @@ Gerenciador de clientes com lembretes automáticos via WhatsApp. O projeto utili
 ## Requisitos
 - [Node.js](https://nodejs.org/) 18 ou superior.
 - NPM ou Yarn.
+- Para registrar análises de conversas, o módulo nativo `sqlite3` deve estar instalado.
 
 ## Instalação
 ```bash
