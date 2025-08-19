@@ -1,6 +1,13 @@
 const fs = require('fs');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+
+// Tenta carregar o módulo sqlite3. Se não estiver instalado, o aplicativo não deve falhar.
+let sqlite3;
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (err) {
+  console.warn('Módulo sqlite3 não encontrado; as análises não serão salvas em banco de dados.');
+}
 
 const API_KEY = 'AIzaSyBBfP9jDBZzcuFxlf3VkU19uiQfoZn6ofw';
 
@@ -37,13 +44,23 @@ async function analyzeConversation(conversation) {
   }
 
   await saveAnalysis(conversation, result, prompt);
-  return { ...result, log: 'Conversa adicionada ao banco de dados com sucesso.' };
+  return {
+    ...result,
+    log: sqlite3
+      ? 'Conversa adicionada ao banco de dados com sucesso.'
+      : 'Conversa analisada, mas não foi possível salvar no banco de dados.'
+  };
 }
 
 /**
  * Salva a análise no banco SQLite
  */
 async function saveAnalysis(conversation, resultado, prompt) {
+  if (!sqlite3) {
+    // Se sqlite3 não estiver disponível, apenas retorna sem salvar.
+    return;
+  }
+
   const dir = path.join(__dirname, 'analises');
   await fs.promises.mkdir(dir, { recursive: true });
   const dbPath = path.join(dir, 'analises.db');
