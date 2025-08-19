@@ -71,3 +71,4 @@ async function saveAnalysis(conversation, resultado, prompt) {
 }
 
 module.exports = { analyzeConversation };
+
